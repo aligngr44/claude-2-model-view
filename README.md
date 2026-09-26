@@ -27,6 +27,12 @@ Güneş'i ve sekiz gezegeni üç boyutlu, etkileşimli olarak anlatan tek dosyal
 
 Görüntü kalitesi cihaza göre otomatik seçilir. İsterseniz adres satırına `?kalite=low`, `?kalite=mobile` ya da `?kalite=desktop` ekleyerek elle seçebilirsiniz. Çalışma sırasında kare hızı düşerse çözünürlük kendiliğinden azaltılır.
 
+### Sergi ekranı için
+
+- **Bekleme modu:** Ekrana 150 saniye dokunulmazsa açık kart kapanır, test biter ve kamera genel görünüme dönüp yavaşça döner. Süreyi saniye cinsinden `?bekleme=90` gibi bir parametreyle değiştirebilirsiniz.
+- **Tam ekran:** Sağ üstteki düğmeyle (masaüstünde) açılır.
+- **İnternetsiz kullanım:** Three.js 0.170.0'ın `build/three.module.js` dosyasını `index.html` ile aynı klasöre, `examples/jsm/controls/OrbitControls.js` dosyasını da `addons/controls/` klasörüne koyun. Ardından `index.html` içindeki `importmap` bölümünde adresleri `"three": "./three.module.js"` ve `"three/addons/": "./addons/"` olarak değiştirin. Tarayıcılar yerel modül dosyalarını `file://` üzerinden açmadığı için klasörü küçük bir yerel sunucuyla yayınlayın (örneğin `python3 -m http.server`). Yazı tipleri yüklenemezse sistem yazı tipleri kullanılır.
+
 ## Ölçek ve doğruluk notları
 
 - Keşif görünümünde uzaklıklar ve boyutlar ekrana sığması için sıkıştırılmıştır (gezegen yarıçapları karekök ölçeğinde). Yörüngelerin sırası, biçimi ve yönü gerçektir. Gerçek boyut oranları Karşılaştır modunda gösterilir.

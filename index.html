@@ -580,6 +580,9 @@ body.mode-quiz #dockWrap *, body.mode-quiz #controls * { pointer-events: none; }
       box.appendChild(wrap);
     }
     window.showLoadError = showLoadError;
+    if (window.HTMLScriptElement && HTMLScriptElement.supports && !HTMLScriptElement.supports('importmap')) {
+      showLoadError('Tarayıcın bu sayfanın kullandığı modern web özelliklerini desteklemiyor. Chrome, Edge, Firefox ya da Safari\'nin güncel bir sürümüyle aç.');
+    }
     setTimeout(function () {
       if (!window.__solarStarted) showLoadError('Üç boyutlu motor (Three.js) yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.');
     }, 25000);
@@ -1025,6 +1028,7 @@ controls.rotateSpeed = coarse ? 0.6 : 0.5;
 controls.zoomSpeed = 0.9;
 controls.minDistance = 8;
 controls.maxDistance = 900;
+controls.autoRotateSpeed = 0.45;
 controls.target.set(0, 0, 0);
 controls.update();
 
@@ -2546,7 +2550,7 @@ buildOrbits();
 /* =====================================================================
    Uygulama durumu
    ===================================================================== */
-const state = { mode: 'explore', selected: null, phase: 'loading', labelsOn: true, orbitsOn: true };
+const state = { mode: 'explore', selected: null, phase: 'loading', labelsOn: true, orbitsOn: true, idle: false };
 const GEN = {
   sun: "Güneş'in", mercury: "Merkür'ün", venus: "Venüs'ün", earth: "Dünya'nın", mars: "Mars'ın",
   jupiter: "Jüpiter'in", saturn: "Satürn'ün", uranus: "Uranüs'ün", neptune: "Neptün'ün", moon: "Ay'ın",
@@ -3612,6 +3616,28 @@ window.addEventListener('keydown', (e) => {
 });
 
 /* =====================================================================
+   Bekleme modu: müze ekranında bir süre dokunulmazsa genel görünüme dön ve yavaşça dön
+   ===================================================================== */
+const IDLE_MS = (+params.get('bekleme') || 150) * 1000;
+let lastInput = performance.now();
+function markInput() {
+  lastInput = performance.now();
+  if (state.idle) { state.idle = false; controls.autoRotate = false; }
+}
+for (const ev of ['pointerdown', 'wheel', 'keydown', 'touchstart']) window.addEventListener(ev, markInput, { passive: true, capture: true });
+function checkIdle() {
+  if (state.phase !== 'ready' || state.idle || performance.now() - lastInput < IDLE_MS) return;
+  state.idle = true;
+  $('#help').hidden = true;
+  $('#controls').classList.remove('is-open');
+  $('#btnControls').setAttribute('aria-expanded', 'false');
+  if (state.mode !== 'explore') setMode('explore');
+  else if (state.selected) deselect();
+  else flyOverview(3);
+  setTimeout(() => { if (state.idle && !cam.fly) controls.autoRotate = !reduceMotion; }, 3400);
+}
+
+/* =====================================================================
    Boyutlandırma ve performans
    ===================================================================== */
 function fitFov() {
@@ -3728,6 +3754,7 @@ function frame(now) {
   renderer.render(scene, camera);
   updateLabels();
   updateDateText();
+  checkIdle();
   liveAcc += dt;
   if (liveAcc > 0.25) { liveAcc = 0; updateLive(false); }
   tunePerformance(dt);
